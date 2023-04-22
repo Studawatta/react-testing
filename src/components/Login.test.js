@@ -1,5 +1,17 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Login from './Longin/Login';
+
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
+    get: () => ({
+      data: {
+        id: 1,
+        name: 'Sandun',
+      },
+    }),
+  },
+}));
 
 test('username input should be rendered', () => {
   render(<Login />);
@@ -39,6 +51,13 @@ test('button should be desabled', () => {
 
   const buttonEl = screen.getByRole('button');
   expect(buttonEl).toBeDisabled();
+});
+
+test('loading should not be rendered', () => {
+  render(<Login />);
+
+  const buttonEl = screen.getByRole('button');
+  expect(buttonEl).not.toHaveTextContent(/please wait/i);
 });
 
 test('error message should not be visible', () => {
@@ -81,4 +100,52 @@ test('button should not be disabled when inputs exist', () => {
   fireEvent.change(passwordInputEl, { target: { value: testValue } });
 
   expect(buttonEl).not.toBeDisabled();
+});
+test('loading should be rendered when click', () => {
+  render(<Login />);
+
+  const buttonEl = screen.getByRole('button');
+  const userInputEl = screen.getByPlaceholderText(/username/i);
+  const passwordInputEl = screen.getByPlaceholderText(/password/i);
+
+  const testValue = 'test';
+
+  fireEvent.change(userInputEl, { target: { value: testValue } });
+  fireEvent.change(passwordInputEl, { target: { value: testValue } });
+  fireEvent.click(buttonEl);
+
+  expect(buttonEl).toHaveTextContent(/please wait/i);
+});
+test('loading should not be rendered after fetching', async () => {
+  render(<Login />);
+
+  const buttonEl = screen.getByRole('button');
+  const userInputEl = screen.getByPlaceholderText(/username/i);
+  const passwordInputEl = screen.getByPlaceholderText(/password/i);
+
+  const testValue = 'test';
+
+  fireEvent.change(userInputEl, { target: { value: testValue } });
+  fireEvent.change(passwordInputEl, { target: { value: testValue } });
+  fireEvent.click(buttonEl);
+
+  await waitFor(() => expect(buttonEl).not.toHaveTextContent(/please wait/i));
+});
+
+test('user should be rendered after fetching', async () => {
+  render(<Login />);
+
+  const buttonEl = screen.getByRole('button');
+  const userInputEl = screen.getByPlaceholderText(/username/i);
+  const passwordInputEl = screen.getByPlaceholderText(/password/i);
+
+  const testValue = 'test';
+
+  fireEvent.change(userInputEl, { target: { value: testValue } });
+  fireEvent.change(passwordInputEl, { target: { value: testValue } });
+  fireEvent.click(buttonEl);
+
+  const userItem = await screen.findByText('Sandun');
+
+  expect(userItem).toBeInTheDocument();
 });
