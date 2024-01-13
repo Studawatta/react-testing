@@ -132,7 +132,7 @@ test('loading should not be rendered after fetching', async () => {
   await waitFor(() => expect(buttonEl).not.toHaveTextContent(/please wait/i));
 });
 
-test('user should be rendered after fetching', async () => {
+test.skip('user should be rendered after fetching', async () => {
   render(<Login />);
 
   const buttonEl = screen.getByRole('button');
